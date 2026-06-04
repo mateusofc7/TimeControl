@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&family=Barlow+Semi+Condensed:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1B3A5C;--navy-mid:#2A4F78;--navy-light:#3A6899;
+  --navy-pale:#EAF0F8;--navy-ultra:#F0F4F9;
+  --white:#FFFFFF;--gray-50:#F7F8FA;--gray-100:#ECEEF2;
+  --gray-200:#D4D8E0;--gray-400:#8A93A6;--gray-600:#525D72;--gray-800:#2C3444;
+  --green:#1E7A4A;--green-bg:#E8F5EE;
+  --amber:#92580A;--amber-bg:#FEF3DC;
+  --red:#B91C1C;--red-bg:#FEE2E2;
+  --blue:#2563EB;--blue-bg:#EFF6FF;
+  --purple:#6B21A8;--purple-bg:#F3E8FF;
+  --font:'Barlow',sans-serif;--cond:'Barlow Condensed',sans-serif;--semi:'Barlow Semi Condensed',sans-serif;
+  --sidebar-w:242px;--topbar-h:58px;--r:10px;--rl:14px;
+  --shadow:0 1px 3px rgba(27,58,92,.07),0 4px 12px rgba(27,58,92,.05);
+}
+html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:var(--gray-800);font-size:14px;line-height:1.5;overflow-x:hidden}
+button,input,select,textarea{font-family:var(--font)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:10px}
+
+/* ── AUTH ── */
+.auth-screen{position:fixed;inset:0;z-index:900;display:grid;grid-template-columns:1fr 1fr;transition:opacity .4s,visibility .4s}
+.auth-screen.gone{opacity:0;visibility:hidden;pointer-events:none}
+@media(max-width:700px){.auth-screen{grid-template-columns:1fr}}
+.auth-left{background:var(--navy);display:flex;flex-direction:column;justify-content:space-between;padding:2.5rem;position:relative;overflow:hidden}
+.auth-left::before{content:'';position:absolute;width:500px;height:500px;border-radius:50%;border:70px solid rgba(255,255,255,.04);top:-150px;left:-150px}
+.auth-left::after{content:'';position:absolute;width:360px;height:360px;border-radius:50%;border:45px solid rgba(255,255,255,.05);bottom:-80px;right:-80px}
+@media(max-width:700px){.auth-left{display:none}}
+.al-brand{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
+.al-brand-icon{width:46px;height:46px;border-radius:12px;background:rgba(255,255,255,.13);display:flex;align-items:center;justify-content:center}
+.al-brand-name{font-family:var(--cond);font-size:22px;font-weight:800;color:#fff;letter-spacing:.04em}
+.al-brand-name small{display:block;font-size:10px;font-weight:500;letter-spacing:.15em;color:rgba(255,255,255,.45);text-transform:uppercase;margin-top:2px}
+.al-hero{position:relative;z-index:1}
+.al-headline{font-family:var(--cond);font-size:46px;font-weight:800;color:#fff;line-height:1.05;margin-bottom:1rem}
+.al-headline em{font-style:normal;color:rgba(255,255,255,.38)}
+.al-desc{font-size:14px;color:rgba(255,255,255,.6);line-height:1.7;max-width:320px;margin-bottom:1.75rem}
+.al-pills{display:flex;flex-direction:column;gap:9px}
+.al-pill{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 13px;color:rgba(255,255,255,.78);font-size:13px;font-weight:500}
+.al-pill-ic{width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.al-foot{position:relative;z-index:1;font-size:11px;color:rgba(255,255,255,.3)}
+.auth-right{background:var(--white);display:flex;align-items:center;justify-content:center;padding:2.5rem 2rem;overflow-y:auto}
+.auth-box{width:100%;max-width:420px;animation:slideUp .4s ease both}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.auth-tabs{display:flex;background:var(--gray-100);border-radius:var(--r);padding:4px;margin-bottom:1.75rem}
+.at-btn{flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;color:var(--gray-400);background:transparent;border:none;cursor:pointer;transition:all .2s;letter-spacing:.01em}
+.at-btn.active{background:var(--white);color:var(--navy);box-shadow:0 1px 4px rgba(27,58,92,.12)}
+.auth-title{font-family:var(--cond);font-size:28px;font-weight:800;color:var(--navy);margin-bottom:4px}
+.auth-sub{font-size:13px;color:var(--gray-400);margin-bottom:1.5rem}
+.f-sec{display:none}.f-sec.active{display:block}
+.f-group{margin-bottom:.9rem}
+.f-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.f-label{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.f-wrap{position:relative}
+.f-ic{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:15px;pointer-events:none}
+.f-in,.f-sel{width:100%;padding:10px 11px 10px 36px;border:1.5px solid var(--gray-200);border-radius:var(--r);font-family:var(--font);font-size:14px;color:var(--gray-800);background:var(--gray-50);outline:none;transition:border-color .2s,box-shadow .2s,background .2s;appearance:none}
+.f-in:focus,.f-sel:focus{border-color:var(--navy-mid);background:var(--white);box-shadow:0 0 0 3px rgba(27,58,92,.08)}
+.f-in.err{border-color:var(--red)}.f-in.ok{border-color:var(--green)}
+.f-eye{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:15px;line-height:1}
+.f-msg{font-size:11px;margin-top:3px;height:14px}
+.f-msg.err{color:var(--red)}.f-msg.ok{color:var(--green)}
+.prof-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.9rem}
+.prof-radio{display:none}
+.prof-lbl{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 8px;border:2px solid var(--gray-200);border-radius:var(--r);font-size:12px;font-weight:700;color:var(--gray-600);background:var(--gray-50);cursor:pointer;transition:all .18s;text-align:center}
+.prof-lbl .pic{font-size:22px}
+.prof-radio:checked+.prof-lbl{border-color:var(--navy);background:var(--navy-pale);color:var(--navy);box-shadow:0 0 0 3px rgba(27,58,92,.08)}
+.steps{display:flex;align-items:center;margin-bottom:1.4rem}
+.step-it{display:flex;flex-direction:column;align-items:center;flex:1;position:relative}
+.step-it:not(:last-child)::after{content:'';position:absolute;top:13px;left:50%;width:100%;height:2px;background:var(--gray-200);z-index:0;transition:background .3s}
+.step-it.done:not(:last-child)::after{background:var(--navy)}
+.step-circ{width:26px;height:26px;border-radius:50%;border:2px solid var(--gray-200);background:var(--white);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gray-400);position:relative;z-index:1;transition:all .25s}
+.step-it.active .step-circ,.step-it.done .step-circ{border-color:var(--navy);background:var(--navy);color:#fff}
+.step-lbl{font-size:9px;font-weight:700;color:var(--gray-400);margin-top:3px;text-transform:uppercase;letter-spacing:.07em}
+.step-it.active .step-lbl,.step-it.done .step-lbl{color:var(--navy)}
+.step-panel{display:none}.step-panel.active{display:block;animation:slideUp .22s ease both}
+.str-wrap{display:none;margin-top:5px}.str-wrap.show{display:block}
+.str-bar{height:4px;background:var(--gray-200);border-radius:2px;overflow:hidden}
+.str-fill{height:100%;border-radius:2px;transition:width .3s,background .3s}
+.str-lbl{font-size:11px;color:var(--gray-400);margin-top:2px}
+.chk-row{display:flex;align-items:flex-start;gap:8px;margin:.5rem 0}
+.chk-row input[type=checkbox]{width:15px;height:15px;flex-shrink:0;margin-top:2px;accent-color:var(--navy);cursor:pointer}
+.chk-row label{font-size:12px;color:var(--gray-600);cursor:pointer;line-height:1.5}
+.chk-row a{color:var(--navy);font-weight:600;text-decoration:none}
+.btn-auth{width:100%;padding:13px;background:var(--navy);color:#fff;border:none;border-radius:var(--r);font-family:var(--cond);font-size:16px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 12px rgba(27,58,92,.22);transition:all .2s}
+.btn-auth:hover{background:var(--navy-mid);transform:translateY(-1px)}
+.btn-auth.loading{opacity:.7;pointer-events:none}
+.btn-ghost{background:none;border:none;font-size:12px;color:var(--navy-light);cursor:pointer;font-weight:600;padding:0}
+.btn-ghost:hover{text-decoration:underline}
+.btn-nav-row{display:flex;gap:8px;margin-top:1.1rem}
+.btn-back{flex:1;padding:11px;background:transparent;border:1.5px solid var(--gray-200);border-radius:var(--r);font-family:var(--cond);font-size:14px;font-weight:700;color:var(--gray-600);cursor:pointer;text-transform:uppercase;letter-spacing:.04em;transition:all .2s}
+.btn-back:hover{border-color:var(--navy);color:var(--navy)}
+.btn-next{flex:2}
+.divider{display:flex;align-items:center;gap:10px;margin:1.1rem 0;font-size:12px;color:var(--gray-400)}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--gray-200)}
+.forgot-panel{display:none}.forgot-panel.show{display:block;animation:slideUp .2s ease both}
+.login-main.hide{display:none}
+.success-sc{display:none;text-align:center;padding:1rem 0}.success-sc.show{display:block;animation:slideUp .3s ease both}
+.suc-icon{width:60px;height:60px;border-radius:50%;background:var(--green-bg);color:var(--green);font-size:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+.suc-title{font-family:var(--cond);font-size:24px;font-weight:800;color:var(--navy);margin-bottom:6px}
+.suc-sub{font-size:13px;color:var(--gray-400);line-height:1.6;margin-bottom:1.5rem}
+
+/* ── APP ── */
+.app{display:flex;height:100vh;overflow:hidden;opacity:0;transition:opacity .35s}
+.app.visible{opacity:1}
+.sidebar{width:var(--sidebar-w);background:var(--navy);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;overflow-x:hidden;transition:width .28s,transform .28s;position:relative;z-index:50}
+.sidebar.collapsed{width:62px}
+@media(max-width:860px){.sidebar{position:fixed;top:0;bottom:0;left:0;transform:translateX(-100%);z-index:200;width:var(--sidebar-w)}.sidebar.mob-open{transform:translateX(0)}}
+.sb-mob-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:199}.sb-mob-bg.show{display:block}
+.sb-top{padding:1.1rem .9rem .9rem;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.sb-brand{display:flex;align-items:center;gap:9px;margin-bottom:1rem}
+.sb-brand-ic{width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.13);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-brand-nm{font-family:var(--cond);font-size:16px;font-weight:800;color:#fff;letter-spacing:.05em;white-space:nowrap;overflow:hidden;transition:opacity .2s}
+.sidebar.collapsed .sb-brand-nm{opacity:0;width:0}
+.sb-user{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.07);border-radius:var(--r);padding:9px 11px}
+.sb-av{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.sb-info{overflow:hidden;transition:opacity .2s,width .2s}
+.sidebar.collapsed .sb-info{opacity:0;width:0}
+.sb-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap}
+.sb-role{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em}
+.sb-toggle{position:absolute;top:50%;right:-13px;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;background:var(--white);border:2px solid var(--gray-200);color:var(--navy);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);z-index:10}
+@media(max-width:860px){.sb-toggle{display:none}}
+.sb-nav{padding:.9rem .7rem;flex:1}
+.sb-sec{font-size:9px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.12em;padding:.65rem .5rem .25rem;white-space:nowrap;overflow:hidden;transition:opacity .2s}
+.sidebar.collapsed .sb-sec{opacity:0}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;font-size:13px;font-weight:500;color:rgba(255,255,255,.62);background:transparent;border:none;cursor:pointer;transition:all .13s;width:100%;text-align:left;font-family:var(--font);white-space:nowrap;overflow:hidden;position:relative}
+.sb-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.sb-item.active{background:rgba(255,255,255,.14);color:#fff;font-weight:600}
+.sb-ic{font-size:17px;flex-shrink:0;width:20px;text-align:center}
+.sb-lbl{overflow:hidden;transition:opacity .2s,max-width .2s;max-width:160px}
+.sidebar.collapsed .sb-lbl{opacity:0;max-width:0}
+.sb-badge{margin-left:auto;font-size:10px;font-weight:700;background:#E24B4A;color:#fff;border-radius:10px;padding:1px 6px;flex-shrink:0;transition:opacity .2s}
+.sidebar.collapsed .sb-badge{opacity:0}
+.sb-foot{padding:.7rem;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.btn-logout{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border-radius:8px;font-size:13px;font-weight:500;color:rgba(255,255,255,.45);background:transparent;border:none;cursor:pointer;transition:all .15s;font-family:var(--font);white-space:nowrap;overflow:hidden}
+.btn-logout:hover{background:rgba(255,255,255,.07);color:#F4A0A0}
+.sidebar.collapsed .btn-logout span{display:none}
+.main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{height:var(--topbar-h);background:var(--white);border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;flex-shrink:0;gap:.75rem}
+.tb-left{display:flex;align-items:center;gap:.75rem;min-width:0}
+.tb-mob-menu{display:none;background:none;border:none;font-size:22px;color:var(--navy);cursor:pointer;flex-shrink:0}
+@media(max-width:860px){.tb-mob-menu{display:flex}}
+.tb-title{font-family:var(--cond);font-size:19px;font-weight:800;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-sub{font-size:11px;color:var(--gray-400);white-space:nowrap}
+.tb-right{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.tb-btn{width:34px;height:34px;border-radius:9px;border:1px solid var(--gray-200);background:transparent;display:flex;align-items:center;justify-content:center;color:var(--gray-600);cursor:pointer;font-size:16px;position:relative;transition:background .15s}
+.tb-btn:hover{background:var(--gray-100)}
+.notif-dot{width:7px;height:7px;background:#E24B4A;border-radius:50%;border:2px solid #fff;position:absolute;top:5px;right:5px}
+.tb-av{width:34px;height:34px;border-radius:50%;background:var(--navy-pale);color:var(--navy);font-family:var(--cond);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--navy-pale);cursor:pointer}
+.content{flex:1;overflow-y:auto;padding:1.5rem}
+@media(max-width:600px){.content{padding:1rem}}
+.page{display:none}.page.active{display:block;animation:slideUp .22s ease both}
+
+/* ── COMPONENTS ── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem}
+.ph-title{font-family:var(--cond);font-size:24px;font-weight:800;color:var(--navy)}
+.ph-sub{font-size:12px;color:var(--gray-400);margin-top:1px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 15px;border-radius:var(--r);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;border:none;transition:all .17s;white-space:nowrap}
+.btn-primary{background:var(--navy);color:#fff}.btn-primary:hover{background:var(--navy-mid)}
+.btn-secondary{background:var(--white);color:var(--gray-800);border:1px solid var(--gray-200)}.btn-secondary:hover{background:var(--gray-50)}
+.btn-success{background:var(--green-bg);color:var(--green);border:1px solid #A7D7BC}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid #FECACA}
+.btn-sm{padding:6px 11px;font-size:12px}.btn-xs{padding:4px 9px;font-size:11px}
+.grid{display:grid;gap:.9rem;margin-bottom:1.1rem}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.g4,.g3,.g2{grid-template-columns:1fr}}
+.metric{background:var(--white);border:1px solid var(--gray-100);border-radius:var(--rl);padding:1.1rem 1.2rem;box-shadow:var(--shadow)}
+.m-label{font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:5px;margin-bottom:7px}
+.m-val{font-family:var(--cond);font-size:30px;font-weight:800;color:var(--navy);line-height:1;margin-bottom:5px}
+.m-val sub{font-size:14px;font-weight:600}
+.m-chg{font-size:12px;display:flex;align-items:center;gap:3px}
+.cup{color:var(--green)}.cdn{color:var(--red)}.cne{color:var(--gray-400)}
+.card{background:var(--white);border:1px solid var(--gray-100);border-radius:var(--rl);padding:1.1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:.9rem}
+.card:last-child{margin-bottom:0}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;flex-wrap:wrap;gap:.5rem}
+.ct{font-family:var(--semi);font-size:14px;font-weight:600;color:var(--navy)}
+.cl{font-size:12px;color:var(--navy-light);background:none;border:none;cursor:pointer;font-family:var(--font);font-weight:600}
+.cl:hover{text-decoration:underline}
+.tc{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+@media(max-width:800px){.tc{grid-template-columns:1fr}}
+.tw{overflow-x:auto;border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 11px;font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--gray-100);white-space:nowrap}
+td{padding:9px 11px;border-bottom:1px solid var(--gray-100);color:var(--gray-800);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--gray-50)}
+.mono{font-family:var(--semi)}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;white-space:nowrap}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.bg{background:var(--green-bg);color:var(--green)}.br{background:var(--red-bg);color:var(--red)}
+.ba{background:var(--amber-bg);color:var(--amber)}.bb{background:var(--blue-bg);color:var(--blue)}
+.bp{background:var(--purple-bg);color:var(--purple)}.bn{background:var(--navy-pale);color:var(--navy)}
+.bx{background:var(--gray-100);color:var(--gray-600)}
+.rtag{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;text-transform:uppercase;letter-spacing:.06em}
+.r-admin{background:var(--navy-pale);color:var(--navy)}.r-rh{background:var(--purple-bg);color:var(--purple)}
+.r-gestor{background:var(--amber-bg);color:var(--amber)}.r-func{background:var(--green-bg);color:var(--green)}
+.prog{height:7px;background:var(--gray-100);border-radius:4px;overflow:hidden}
+.pf{height:100%;border-radius:4px;transition:width .6s ease}
+.bchart{display:flex;align-items:flex-end;gap:7px}
+.bcc{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bfill{width:100%;border-radius:4px 4px 0 0;min-height:3px}
+.blbl{font-size:10px;color:var(--gray-400)}
+.av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:11px;font-weight:700;flex-shrink:0}
+.av-row{display:flex;align-items:center;gap:9px}
+.tl{display:flex;flex-direction:column}
+.tl-row{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid var(--gray-100)}
+.tl-row:last-child{border-bottom:none}
+.tl-t{font-family:var(--semi);font-size:12px;color:var(--gray-400);min-width:36px}
+.tl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.di{background:var(--green)}.do{background:var(--red)}.db{background:var(--amber)}.dp{background:var(--gray-200)}
+.tl-lbl{font-size:13px;color:var(--gray-800);flex:1}
+.tl-m{font-size:11px;color:var(--gray-400)}
+.al-item{display:flex;align-items:flex-start;gap:11px;padding:11px 13px;border-radius:var(--r);border-left:3px solid;margin-bottom:7px}
+.al-item:last-child{margin-bottom:0}
+.al-e{background:var(--red-bg);border-color:#EF4444}.al-w{background:var(--amber-bg);border-color:#F59E0B}
+.al-i{background:var(--blue-bg);border-color:#3B82F6}.al-s{background:var(--green-bg);border-color:var(--green)}
+.al-ic{font-size:16px;flex-shrink:0;margin-top:1px}
+.al-body{flex:1;min-width:0}
+.al-t2{font-size:13px;font-weight:600;margin-bottom:2px}
+.al-s2{font-size:12px;color:var(--gray-600)}
+.clk{background:var(--navy);border-radius:var(--rl);padding:1.4rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:.9rem;box-shadow:0 4px 20px rgba(27,58,92,.18)}
+.clk-left{display:flex;align-items:center;gap:14px}
+.clk-orb{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.clk-status{font-size:15px;font-weight:600;color:#fff}
+.clk-sub{font-size:12px;color:rgba(255,255,255,.5);margin-top:1px}
+.clk-timer{font-family:var(--cond);font-size:26px;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:.04em}
+.clk-btns{display:flex;gap:8px;flex-wrap:wrap}
+.cbtn{display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:var(--r);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;border:none;transition:all .17s}
+.cbtn-brk{background:rgba(255,255,255,.13);color:#fff}.cbtn-brk:hover{background:rgba(255,255,255,.22)}
+.cbtn-out{background:var(--red-bg);color:var(--red)}.cbtn-out:hover{background:#FCA5A5}
+.cbtn-in{background:var(--green-bg);color:var(--green)}.cbtn-in:hover{background:#A7F3D0}
+.fi{display:grid;gap:.75rem}
+.fi2{grid-template-columns:1fr 1fr}
+@media(max-width:500px){.fi2{grid-template-columns:1fr}}
+.fl{display:block;font-size:11px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.fi-in,.fi-sel,.fi-ta{width:100%;padding:9px 11px;border:1.5px solid var(--gray-200);border-radius:var(--r);font-family:var(--font);font-size:13px;color:var(--gray-800);background:var(--gray-50);outline:none;transition:all .2s;resize:vertical}
+.fi-in:focus,.fi-sel:focus,.fi-ta:focus{border-color:var(--navy-mid);background:#fff;box-shadow:0 0 0 3px rgba(27,58,92,.08)}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--gray-200);margin-bottom:1.1rem;overflow-x:auto}
+.tab{padding:9px 15px;font-size:13px;font-weight:600;font-family:var(--font);color:var(--gray-400);background:transparent;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--navy)}.tab.active{color:var(--navy);border-bottom-color:var(--navy)}
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--gray-100)}
+.tog-row:last-child{border-bottom:none}
+.tog-t2{font-size:13px;font-weight:600;color:var(--gray-800)}.tog-s2{font-size:12px;color:var(--gray-400)}
+.tog{position:relative;width:40px;height:22px;flex-shrink:0;cursor:pointer}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tog-track{position:absolute;inset:0;border-radius:11px;background:var(--gray-200);transition:.25s}
+.tog input:checked~.tog-track{background:var(--navy)}
+.tog-thumb{position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog input:checked~.tog-thumb{left:21px}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:var(--rl);padding:1.6rem;width:100%;max-width:480px;box-shadow:0 8px 40px rgba(0,0,0,.15);animation:slideUp .25s ease both;max-height:90vh;overflow-y:auto}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
+.mt2{font-family:var(--cond);font-size:20px;font-weight:800;color:var(--navy)}
+.mc{background:none;border:none;font-size:20px;color:var(--gray-400);cursor:pointer;line-height:1}
+.mc:hover{color:var(--gray-800)}
+.mf{display:flex;justify-content:flex-end;gap:8px;margin-top:1.1rem}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--gray-800);color:#fff;padding:11px 16px;border-radius:var(--r);font-size:13px;font-weight:500;display:flex;align-items:center;gap:9px;box-shadow:0 4px 20px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);z-index:500;max-width:320px}
+.toast.show{transform:translateY(0);opacity:1}
+.t-ic{font-size:16px}
+.tok .t-ic{color:#6EE0A0}.terr .t-ic{color:#F4A0A0}
+.search-inp{padding:8px 11px 8px 34px;border:1.5px solid var(--gray-200);border-radius:var(--r);font-family:var(--font);font-size:13px;background:var(--gray-50);outline:none;transition:all .2s;color:var(--gray-800);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238A93A6' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:10px center}
+.search-inp:focus{border-color:var(--navy-mid);background-color:#fff;box-shadow:0 0 0 3px rgba(27,58,92,.08)}
+.empty{text-align:center;padding:3rem 1rem;color:var(--gray-400)}
+.empty-ic{font-size:40px;margin-bottom:.75rem;opacity:.5}
+.empty-t{font-size:14px;font-weight:600;margin-bottom:4px;color:var(--gray-600)}
+.empty-s{font-size:13px}
+
+/* ── MONITOR ESPECÍFICO ── */
+.monitor-header{background:var(--navy);border-radius:var(--rl);padding:1.25rem 1.5rem;margin-bottom:.9rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
+.monitor-title{font-family:var(--cond);font-size:20px;font-weight:800;color:#fff}
+.monitor-sub{font-size:12px;color:rgba(255,255,255,.55);margin-top:2px}
+.live-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;color:#fff}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#4ADE80;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+.feed-wrap{display:flex;flex-direction:column;gap:0}
+.feed-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--gray-100);transition:background .15s;cursor:default}
+.feed-row:last-child{border-bottom:none}
+.feed-row:hover{background:var(--gray-50)}
+.feed-time{font-family:var(--semi);font-size:12px;color:var(--gray-400);min-width:42px;flex-shrink:0}
+.feed-icon{font-size:18px;flex-shrink:0;width:24px;text-align:center}
+.feed-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:11px;font-weight:700;flex-shrink:0}
+.feed-info{flex:1;min-width:0}
+.feed-name{font-size:13px;font-weight:600;color:var(--gray-800)}
+.feed-detail{font-size:12px;color:var(--gray-400);margin-top:1px}
+.feed-badge{flex-shrink:0}
+.feed-new{animation:feedIn .4s ease both}
+@keyframes feedIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+.pulse-card{animation:pulseCard .6s ease}
+@keyframes pulseCard{0%,100%{box-shadow:var(--shadow)}50%{box-shadow:0 0 0 4px rgba(27,58,92,.12),var(--shadow)}}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;margin-bottom:.9rem}
+@media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.stat-grid{grid-template-columns:1fr 1fr}}
+.stat-card{background:var(--white);border:1px solid var(--gray-100);border-radius:var(--rl);padding:1rem 1.1rem;box-shadow:var(--shadow);text-align:center;transition:all .3s}
+.stat-number{font-family:var(--cond);font-size:36px;font-weight:800;color:var(--navy);line-height:1;transition:color .3s}
+.stat-label{font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-top:5px}
+.stat-sub{font-size:11px;color:var(--gray-400);margin-top:2px}
+.emp-status-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.65rem;margin-bottom:.9rem}
+.emp-status-card{background:var(--white);border:1.5px solid var(--gray-100);border-radius:var(--r);padding:.9rem 1rem;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .18s}
+.emp-status-card:hover{border-color:var(--navy-pale);background:var(--navy-ultra)}
+.emp-status-card.st-in{border-color:#A7D7BC}
+.emp-status-card.st-out{border-color:var(--gray-200)}
+.emp-status-card.st-break{border-color:#FBBF24}
+.emp-status-card.st-absent{border-color:#FECACA}
+.esc-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:12px;font-weight:700;flex-shrink:0}
+.esc-info{min-width:0}
+.esc-name{font-size:12px;font-weight:600;color:var(--gray-800);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.esc-since{font-size:10px;color:var(--gray-400);margin-top:1px}
+.filter-bar{display:flex;align-items:center;gap:.65rem;margin-bottom:.9rem;flex-wrap:wrap}
+.filter-chip{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-600);cursor:pointer;transition:all .15s;font-family:var(--font)}
+.filter-chip:hover{border-color:var(--navy-light);color:var(--navy)}
+.filter-chip.active{background:var(--navy);border-color:var(--navy);color:#fff}
+.reg-counter{font-family:var(--cond);font-size:13px;font-weight:600;color:var(--gray-400);margin-left:auto}
+</style>
+</head>
+<body>
+
+<!-- ════ AUTH ════ -->
+<div class="auth-screen" id="auth">
+  <div class="auth-left">
+    <div class="al-brand">
+      <div class="al-brand-icon">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+          <circle cx="13" cy="13" r="11" stroke="rgba(255,255,255,.35)" stroke-width="2"/>
+          <circle cx="13" cy="13" r="8"  stroke="rgba(255,255,255,.6)"  stroke-width="1.5"/>
+          <line x1="13" y1="13" x2="13" y2="6"  stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <line x1="13" y1="13" x2="18" y2="16" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="13" cy="13" r="1.5" fill="white"/>
+        </svg>
+      </div>
+      <div class="al-brand-name">TIME CONTROL <small>Gestão de Jornada</small></div>
+    </div>
+    <div class="al-hero">
+      <div class="al-headline">Controle<br>inteligente<br><em>da sua equipe.</em></div>
+      <p class="al-desc">Registre pontos, gerencie jornadas, controle horas extras e monitore tudo em tempo real.</p>
+      <div class="al-pills">
+        <div class="al-pill"><div class="al-pill-ic">⏱</div>Registro de ponto em tempo real</div>
+        <div class="al-pill"><div class="al-pill-ic">📡</div>Monitoramento ao vivo de toda equipe</div>
+        <div class="al-pill"><div class="al-pill-ic">📊</div>Relatórios e alertas automáticos</div>
+        <div class="al-pill"><div class="al-pill-ic">🔒</div>Dados seguros com backup automático</div>
+      </div>
+    </div>
+    <div class="al-foot">© 2026 Time Control · Todos os direitos reservados.</div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-box">
+      <div class="auth-tabs">
+        <button class="at-btn active" id="at-login" onclick="authTab('login')">Entrar</button>
+        <button class="at-btn" id="at-reg" onclick="authTab('reg')">Criar conta</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="f-sec active" id="sec-login">
+        <div id="login-main">
+          <div class="auth-title">Bem-vindo de volta</div>
+          <div class="auth-sub">Selecione seu perfil e acesse o sistema</div>
+          <div style="margin-bottom:.9rem">
+            <div class="f-label" style="margin-bottom:6px"><span>Perfil de acesso</span></div>
+            <div class="prof-grid">
+              <div><input type="radio" name="li-role" id="lr-admin" value="admin" class="prof-radio" checked><label for="lr-admin" class="prof-lbl"><span class="pic">🛡️</span>Administrador</label></div>
+              <div><input type="radio" name="li-role" id="lr-rh"   value="rh"    class="prof-radio"><label for="lr-rh"   class="prof-lbl"><span class="pic">👥</span>RH</label></div>
+              <div><input type="radio" name="li-role" id="lr-gest" value="gestor" class="prof-radio"><label for="lr-gest" class="prof-lbl"><span class="pic">📋</span>Gestor</label></div>
+              <div><input type="radio" name="li-role" id="lr-func" value="func"  class="prof-radio"><label for="lr-func" class="prof-lbl"><span class="pic">🧑‍💼</span>Funcionário</label></div>
+            </div>
+          </div>
+          <div class="f-group">
+            <div class="f-label"><span>E-mail</span></div>
+            <div class="f-wrap"><span class="f-ic">✉</span><input class="f-in" type="email" id="li-email" placeholder="seu@email.com" value="admin@timecontrol.com.br"></div>
+            <div class="f-msg" id="li-em"></div>
+          </div>
+          <div class="f-group">
+            <div class="f-label"><span>Senha</span><button class="btn-ghost" onclick="showForgot()">Esqueci a senha</button></div>
+            <div class="f-wrap"><span class="f-ic">🔒</span><input class="f-in" type="password" id="li-pass" placeholder="••••••••" value="12345678"><button class="f-eye" onclick="eyeT('li-pass',this)">👁</button></div>
+            <div class="f-msg" id="li-pm"></div>
+          </div>
+          <div class="chk-row" style="margin-bottom:1rem"><input type="checkbox" id="remember" checked><label for="remember">Manter conectado neste dispositivo</label></div>
+          <button class="btn-auth" id="btn-login" onclick="doLogin()">ENTRAR NO SISTEMA</button>
+          <div class="divider">ou</div>
+          <div style="text-align:center;font-size:13px;color:var(--gray-400)">Não tem conta? <button class="btn-ghost" onclick="authTab('reg')">Criar conta</button></div>
+        </div>
+        <div class="forgot-panel" id="forgot-p">
+          <div class="auth-title">Recuperar senha</div>
+          <div class="auth-sub">Enviaremos um link para o seu e-mail</div>
+          <div class="f-group"><div class="f-label"><span>E-mail</span></div><div class="f-wrap"><span class="f-ic">✉</span><input class="f-in" type="email" id="forg-e" placeholder="seu@email.com"></div></div>
+          <button class="btn-auth" style="margin-bottom:10px" onclick="doForgot()">ENVIAR LINK</button>
+          <button class="btn-back" style="width:100%" onclick="hideForgot()">← VOLTAR AO LOGIN</button>
+        </div>
+      </div>
+
+      <!-- REGISTRO -->
+      <div class="f-sec" id="sec-reg">
+        <div class="success-sc" id="reg-ok">
+          <div class="suc-icon">✓</div>
+          <div class="suc-title">Conta criada!</div>
+          <div class="suc-sub">Cadastro realizado com sucesso.<br>Verifique seu e-mail para ativar.</div>
+          <button class="btn-auth" onclick="authTab('login')">IR PARA O LOGIN</button>
+        </div>
+        <div id="reg-form">
+          <div class="auth-title">Criar conta</div>
+          <div class="auth-sub">Preencha os dados para começar</div>
+          <div class="steps" id="steps">
+            <div class="step-it active" id="si1"><div class="step-circ">1</div><div class="step-lbl">Perfil</div></div>
+            <div class="step-it" id="si2"><div class="step-circ">2</div><div class="step-lbl">Dados</div></div>
+            <div class="step-it" id="si3"><div class="step-circ">3</div><div class="step-lbl">Acesso</div></div>
+          </div>
+          <div class="step-panel active" id="sp1">
+            <div class="f-group">
+              <div class="f-label"><span>Perfil</span></div>
+              <div class="prof-grid">
+                <div><input type="radio" name="rg-role" id="rr-a" value="admin" class="prof-radio"><label for="rr-a" class="prof-lbl"><span class="pic">🛡️</span>Administrador</label></div>
+                <div><input type="radio" name="rg-role" id="rr-r" value="rh"    class="prof-radio"><label for="rr-r" class="prof-lbl"><span class="pic">👥</span>RH</label></div>
+                <div><input type="radio" name="rg-role" id="rr-g" value="gestor" class="prof-radio"><label for="rr-g" class="prof-lbl"><span class="pic">📋</span>Gestor</label></div>
+                <div><input type="radio" name="rg-role" id="rr-f" value="func"  class="prof-radio"><label for="rr-f" class="prof-lbl"><span class="pic">🧑‍💼</span>Funcionário</label></div>
+              </div>
+              <div class="f-msg err" id="rr-m"></div>
+            </div>
+            <div class="f-group" id="eg" style="display:none"><div class="f-label"><span>Nome da empresa</span></div><div class="f-wrap"><span class="f-ic">🏢</span><input class="f-in" id="rg-emp" placeholder="Ex: Empresa ABC Ltda."></div><div class="f-msg" id="em-m"></div></div>
+            <div class="f-group" id="cg" style="display:none"><div class="f-label"><span>Código da empresa</span></div><div class="f-wrap"><span class="f-ic">#</span><input class="f-in" id="rg-cod" placeholder="TC-2026-XXXX" style="text-transform:uppercase;letter-spacing:.08em"></div><div class="f-msg" id="co-m"></div></div>
+            <button class="btn-auth" onclick="goStep(2)">PRÓXIMO →</button>
+          </div>
+          <div class="step-panel" id="sp2">
+            <div class="f-row2" style="margin-bottom:.9rem">
+              <div><div class="f-label"><span>Nome</span></div><div class="f-wrap"><span class="f-ic">👤</span><input class="f-in" id="rg-nome" placeholder="Nome"></div><div class="f-msg" id="no-m"></div></div>
+              <div><div class="f-label"><span>Sobrenome</span></div><div class="f-wrap"><span class="f-ic">👤</span><input class="f-in" id="rg-sobr" placeholder="Sobrenome"></div></div>
+            </div>
+            <div class="f-group"><div class="f-label"><span>CPF</span></div><div class="f-wrap"><span class="f-ic">🪪</span><input class="f-in" id="rg-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mCPF(this)"></div><div class="f-msg" id="cp-m"></div></div>
+            <div class="f-group"><div class="f-label"><span>Telefone</span></div><div class="f-wrap"><span class="f-ic">📱</span><input class="f-in" id="rg-tel" placeholder="(00) 00000-0000" maxlength="15" oninput="mPhone(this)"></div></div>
+            <div class="f-group"><div class="f-label"><span>Cargo</span></div><div class="f-wrap"><span class="f-ic">💼</span><input class="f-in" id="rg-cargo" placeholder="Ex: Analista de RH"></div></div>
+            <div class="btn-nav-row"><button class="btn-back" onclick="goStep(1)">← VOLTAR</button><button class="btn-auth btn-next" onclick="goStep(3)">PRÓXIMO →</button></div>
+          </div>
+          <div class="step-panel" id="sp3">
+            <div class="f-group"><div class="f-label"><span>E-mail</span></div><div class="f-wrap"><span class="f-ic">✉</span><input class="f-in" type="email" id="rg-email" placeholder="seu@email.com" oninput="chkE(this)"></div><div class="f-msg" id="re-m"></div></div>
+            <div class="f-group"><div class="f-label"><span>Senha</span></div><div class="f-wrap"><span class="f-ic">🔒</span><input class="f-in" type="password" id="rg-pass" placeholder="Mínimo 8 caracteres" oninput="chkS(this)"><button class="f-eye" onclick="eyeT('rg-pass',this)">👁</button></div>
+              <div class="str-wrap" id="str-w"><div class="str-bar"><div class="str-fill" id="str-f"></div></div><div class="str-lbl" id="str-l"></div></div>
+              <div class="f-msg" id="rp-m"></div>
+            </div>
+            <div class="f-group"><div class="f-label"><span>Confirmar senha</span></div><div class="f-wrap"><span class="f-ic">🔒</span><input class="f-in" type="password" id="rg-pass2" placeholder="Repita a senha" oninput="chkM()"><button class="f-eye" onclick="eyeT('rg-pass2',this)">👁</button></div><div class="f-msg" id="rp2-m"></div></div>
+            <div class="chk-row"><input type="checkbox" id="terms"><label for="terms">Li e aceito os <a href="#">Termos de Uso</a> e a <a href="#">Política de Privacidade</a></label></div>
+            <div class="f-msg" id="te-m" style="margin-top:3px"></div>
+            <div class="btn-nav-row"><button class="btn-back" onclick="goStep(2)">← VOLTAR</button><button class="btn-auth btn-next" id="btn-reg" onclick="doReg()">CRIAR CONTA</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ APP ════ -->
+<div class="app" id="app">
+  <div class="sb-mob-bg" id="sb-bg" onclick="closeMob()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-top">
+      <div class="sb-brand">
+        <div class="sb-brand-ic">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <circle cx="10" cy="10" r="8" stroke="rgba(255,255,255,.5)" stroke-width="1.5"/>
+            <line x1="10" y1="10" x2="10" y2="4"    stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="10" y1="10" x2="14" y2="12.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            <circle cx="10" cy="10" r="1.2" fill="white"/>
+          </svg>
+        </div>
+        <div class="sb-brand-nm">TIME CONTROL</div>
+      </div>
+      <div class="sb-user">
+        <div class="sb-av" id="sb-av">—</div>
+        <div class="sb-info"><div class="sb-name" id="sb-name">—</div><div class="sb-role" id="sb-role">—</div></div>
+      </div>
+    </div>
+    <nav class="sb-nav" id="sb-nav"></nav>
+    <div class="sb-foot"><button class="btn-logout" onclick="doLogout()">🚪 <span>Sair do sistema</span></button></div>
+    <button class="sb-toggle" id="sb-tog" onclick="toggleSB()">◀</button>
+  </aside>
+  <div class="main-area">
+    <div class="topbar">
+      <div class="tb-left">
+        <button class="tb-mob-menu" onclick="openMob()">☰</button>
+        <div><div class="tb-title" id="tb-title">—</div><div class="tb-sub" id="tb-sub">—</div></div>
+      </div>
+      <div class="tb-right">
+        <button class="tb-btn" onclick="toast('Sem novas notificações','ok')">🔔<span class="notif-dot"></span></button>
+        <button class="tb-btn" onclick="toast('Busca em breve','ok')">🔍</button>
+        <div class="tb-av" id="tb-av">—</div>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="mh"><div class="mt2" id="m-title">—</div><button class="mc" onclick="closeModal()">✕</button></div>
+    <div id="m-body"></div>
+    <div class="mf" id="m-foot"></div>
+  </div>
+</div>
+<div class="toast" id="toast"><span class="t-ic" id="t-ic">✓</span><span id="t-msg"></span></div>
+
+<script>
+/* ════ DADOS ZERADOS — STATE ════ */
+const DB = {
+  funcionarios: [],   // cadastros reais virão aqui
+  registros:    [],   // feed de registros de ponto
+  alertas:      [],   // alertas gerados
+  stats: { presentes:0, ausentes:0, intervalo:0, extras:0 },
+};
+
+/* ════ ROLES ════ */
+const ROLES={
+  admin: {label:'Administrador',name:'Administrador',init:'AD',tag:'r-admin'},
+  rh:    {label:'RH',           name:'Usuário RH',   init:'RH',tag:'r-rh'},
+  gestor:{label:'Gestor',       name:'Gestor',       init:'GT',tag:'r-gestor'},
+  func:  {label:'Funcionário',  name:'Funcionário',  init:'FC',tag:'r-func'},
+};
+const NAV={
+  admin:[
+    {s:'Visão Geral',items:[{id:'dashboard',ic:'📊',l:'Dashboard'},{id:'monitor',ic:'📡',l:'Monitor ao vivo',b:'LIVE'}]},
+    {s:'Gestão',items:[{id:'funcionarios',ic:'👥',l:'Funcionários'},{id:'registros',ic:'🕐',l:'Registros de Ponto'},{id:'escalas',ic:'📅',l:'Escalas'}]},
+    {s:'Relatórios',items:[{id:'relatorios',ic:'📈',l:'Relatórios'},{id:'backup',ic:'💾',l:'Backup'}]},
+    {s:'Sistema',items:[{id:'config',ic:'⚙️',l:'Configurações'}]},
+  ],
+  rh:[
+    {s:'Visão Geral',items:[{id:'dashboard',ic:'📊',l:'Dashboard'},{id:'monitor',ic:'📡',l:'Monitor ao vivo',b:'LIVE'}]},
+    {s:'Funcionários',items:[{id:'funcionarios',ic:'👥',l:'Funcionários'},{id:'registros',ic:'🕐',l:'Registros de Ponto'},{id:'faltas',ic:'❌',l:'Faltas e Atrasos'},{id:'horasextras',ic:'⏱',l:'Horas Extras'}]},
+    {s:'',items:[{id:'relatorios',ic:'📈',l:'Relatórios'}]},
+  ],
+  gestor:[
+    {s:'Visão Geral',items:[{id:'dashboard',ic:'📊',l:'Dashboard'},{id:'monitor',ic:'📡',l:'Monitor ao vivo',b:'LIVE'}]},
+    {s:'Equipe',items:[{id:'registros',ic:'🕐',l:'Registros de Ponto'},{id:'escalas',ic:'📅',l:'Escalas'},{id:'horasextras',ic:'⏱',l:'Horas Extras'}]},
+    {s:'',items:[{id:'relatorios',ic:'📈',l:'Relatórios'}]},
+  ],
+  func:[
+    {s:'Minha Jornada',items:[{id:'dashboard',ic:'🏠',l:'Início'},{id:'meuponto',ic:'⏰',l:'Meu Ponto'},{id:'historico',ic:'📋',l:'Histórico'}]},
+    {s:'Conta',items:[{id:'meusdados',ic:'👤',l:'Meus Dados'}]},
+  ],
+};
+const TITLES={dashboard:'Dashboard',monitor:'Monitor ao vivo',funcionarios:'Funcionários',registros:'Registros de Ponto',escalas:'Escalas',relatorios:'Relatórios',backup:'Backup',config:'Configurações',faltas:'Faltas e Atrasos',horasextras:'Horas Extras',meuponto:'Meu Ponto',historico:'Histórico',meusdados:'Meus Dados'};
+const SUBS={dashboard:'Visão geral do sistema',monitor:'Monitoramento em tempo real',funcionarios:'Colaboradores cadastrados',registros:'Entradas e saídas registradas',escalas:'Horários e turnos',relatorios:'Análise e exportação',backup:'Segurança dos dados',config:'Preferências',faltas:'Controle de faltas',horasextras:'Controle de horas extras',meuponto:'Registre sua jornada',historico:'Seus registros de ponto',meusdados:'Suas informações'};
+
+let role='admin', sbCollapsed=false;
+let clockState='out', clockStart=0, clockTick;
+let feedPaused=false;
+let currentUser=null;
+
+/* ════ BANCO LOCAL (localStorage) ════ */
+function getUsers(){
+  try{ return JSON.parse(localStorage.getItem('tc_users')||'[]'); }catch(e){ return []; }
+}
+function saveUser(user){
+  const users=getUsers();
+  const idx=users.findIndex(u=>u.id===user.id);
+  if(idx>=0) users[idx]=user; else users.push(user);
+  try{ localStorage.setItem('tc_users', JSON.stringify(users)); }catch(e){}
+}
+function deleteUser(id){
+  const users=getUsers().filter(u=>u.id!==id);
+  try{ localStorage.setItem('tc_users', JSON.stringify(users)); }catch(e){}
+}
+function getRegistros(){
+  try{ return JSON.parse(localStorage.getItem('tc_registros')||'[]'); }catch(e){ return []; }
+}
+function saveRegistro(entry){
+  const regs=getRegistros();
+  regs.unshift(entry);
+  if(regs.length>500) regs.pop();
+  try{ localStorage.setItem('tc_registros', JSON.stringify(regs)); }catch(e){}
+}
+// Hash simples (não use em produção — use bcrypt no backend)
+function hashSimple(str){
+  let h=0;
+  for(let i=0;i<str.length;i++){ h=((h<<5)-h)+str.charCodeAt(i); h|=0; }
+  return 'h'+Math.abs(h).toString(36);
+}
+
+/* ════ AUTH ════ */
+let regStep=1;
+function authTab(t){
+  ['login','reg'].forEach(x=>{document.getElementById('sec-'+x).classList.toggle('active',x===t);document.getElementById('at-'+x).classList.toggle('active',x===t)});
+  if(t==='login') hideForgot();
+}
+function showForgot(){document.getElementById('login-main').classList.add('hide');document.getElementById('forgot-p').classList.add('show')}
+function hideForgot(){document.getElementById('login-main').classList.remove('hide');document.getElementById('forgot-p').classList.remove('show')}
+function doForgot(){const e=document.getElementById('forg-e').value.trim();if(!e||!e.includes('@')){toast('Informe um e-mail válido','err');return}toast('Link enviado para '+e,'ok');setTimeout(hideForgot,1500)}
+function eyeT(id,btn){const i=document.getElementById(id);const s=i.type==='password';i.type=s?'text':'password';btn.textContent=s?'🙈':'👁'}
+document.querySelectorAll('input[name="rg-role"]').forEach(r=>{r.addEventListener('change',function(){const v=this.value;document.getElementById('eg').style.display=v==='admin'?'block':'none';document.getElementById('cg').style.display=v!=='admin'?'block':'none'})});
+function goStep(n){
+  if(n>regStep&&!valStep(regStep))return;
+  document.getElementById('sp'+regStep).classList.remove('active');document.getElementById('si'+regStep).classList.remove('active');
+  if(n>regStep)document.getElementById('si'+regStep).classList.add('done');else document.getElementById('si'+regStep).classList.remove('done');
+  regStep=n;document.getElementById('sp'+n).classList.add('active');document.getElementById('si'+n).classList.add('active');
+}
+function valStep(s){
+  if(s===1){const r=document.querySelector('input[name="rg-role"]:checked');if(!r){setM('rr-m','Selecione um perfil.','err');return false}clearM('rr-m');if(r.value==='admin'){const e=document.getElementById('rg-emp').value.trim();if(!e){setM('em-m','Informe o nome da empresa.','err');return false}clearM('em-m')}else{const c=document.getElementById('rg-cod').value.trim();if(!c){setM('co-m','Informe o código da empresa.','err');return false}clearM('co-m')}return true}
+  if(s===2){if(!document.getElementById('rg-nome').value.trim()){setM('no-m','Informe seu nome.','err');return false}clearM('no-m');if(document.getElementById('rg-cpf').value.length<14){setM('cp-m','CPF inválido.','err');return false}clearM('cp-m');return true}
+  return true;
+}
+function chkE(i){const v=i.value.trim();if(!v){clearM('re-m');return}const ok=v.includes('@')&&v.includes('.');setM('re-m',ok?'E-mail válido ✓':'E-mail inválido',ok?'ok':'err')}
+function chkS(i){const v=i.value;document.getElementById('str-w').classList.toggle('show',v.length>0);let sc=0;if(v.length>=8)sc++;if(/[A-Z]/.test(v))sc++;if(/[0-9]/.test(v))sc++;if(/[^A-Za-z0-9]/.test(v))sc++;const p=[0,25,50,75,100][sc];const c=['','#C0392B','#E67E22','#2980B9','#1E7A4A'][sc];const l=['','Muito fraca','Fraca','Boa','Forte'][sc];document.getElementById('str-f').style.cssText=`width:${p}%;background:${c||'#ccc'}`;document.getElementById('str-l').textContent=l||'';if(document.getElementById('rg-pass2').value)chkM()}
+function chkM(){const p1=document.getElementById('rg-pass').value,p2=document.getElementById('rg-pass2').value;if(!p2){clearM('rp2-m');return}p1===p2?setM('rp2-m','Senhas coincidem ✓','ok'):setM('rp2-m','As senhas não coincidem','err')}
+function mCPF(i){let v=i.value.replace(/\D/g,'').slice(0,11);if(v.length>9)v=v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/,'$1.$2.$3-$4');else if(v.length>6)v=v.replace(/(\d{3})(\d{3})(\d{0,3})/,'$1.$2.$3');else if(v.length>3)v=v.replace(/(\d{3})(\d{0,3})/,'$1.$2');i.value=v}
+function mPhone(i){let v=i.value.replace(/\D/g,'').slice(0,11);if(v.length>10)v=v.replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3');else if(v.length>6)v=v.replace(/(\d{2})(\d{4,5})(\d{0,4})/,'($1) $2-$3');else if(v.length>2)v=v.replace(/(\d{2})(\d{0,5})/,'($1) $2');i.value=v}
+function doLogin(){
+  const e=document.getElementById('li-email').value.trim().toLowerCase();
+  const p=document.getElementById('li-pass').value;
+  let ok=true;
+  if(!e||!e.includes('@')){setM('li-em','E-mail inválido.','err');ok=false}else clearM('li-em');
+  if(p.length<6){setM('li-pm','Senha muito curta.','err');ok=false}else clearM('li-pm');
+  if(!ok)return;
+
+  const btn=document.getElementById('btn-login');
+  btn.textContent='VERIFICANDO...';btn.classList.add('loading');
+
+  setTimeout(()=>{
+    btn.textContent='ENTRAR NO SISTEMA';btn.classList.remove('loading');
+
+    // Busca usuário no banco local
+    const users=getUsers();
+    const user=users.find(u=>u.email===e);
+
+    if(!user){
+      setM('li-em','E-mail não cadastrado.','err');
+      toast('Conta não encontrada. Crie uma conta primeiro.','err');
+      return;
+    }
+    if(user.senha!==hashSimple(p)){
+      setM('li-pm','Senha incorreta.','err');
+      toast('Senha incorreta. Tente novamente.','err');
+      return;
+    }
+
+    clearM('li-em');clearM('li-pm');
+
+    if(document.getElementById('remember').checked){
+      try{
+        localStorage.setItem('tc_session', JSON.stringify({email:user.email,role:user.role,nome:user.nome,id:user.id}));
+      }catch(ex){}
+    }
+    toast('Login realizado com sucesso!','ok');
+    launchApp(user.role, user);
+  },800);
+}
+function doReg(){
+  const e=document.getElementById('rg-email').value.trim().toLowerCase();
+  const p=document.getElementById('rg-pass').value;
+  const p2=document.getElementById('rg-pass2').value;
+  const t=document.getElementById('terms').checked;
+  const nome=document.getElementById('rg-nome').value.trim();
+  const sobr=document.getElementById('rg-sobr').value.trim();
+  const role_sel=document.querySelector('input[name="rg-role"]:checked')?.value;
+  let ok=true;
+
+  if(!e||!e.includes('@')){setM('re-m','E-mail inválido.','err');ok=false}else clearM('re-m');
+  if(p.length<8){setM('rp-m','Mínimo 8 caracteres.','err');ok=false}else clearM('rp-m');
+  if(p!==p2){setM('rp2-m','Senhas não coincidem.','err');ok=false}else clearM('rp2-m');
+  if(!t){setM('te-m','Aceite os termos para continuar.','err');ok=false}else clearM('te-m');
+  if(!ok)return;
+
+  // Verifica se e-mail já existe
+  const users=getUsers();
+  if(users.find(u=>u.email===e)){
+    setM('re-m','Este e-mail já está cadastrado.','err');
+    toast('E-mail já cadastrado. Faça login.','err');
+    return;
+  }
+
+  const btn=document.getElementById('btn-reg');btn.textContent='CRIANDO...';btn.classList.add('loading');
+
+  setTimeout(()=>{
+    btn.classList.remove('loading');
+
+    // Salva usuário
+    const newUser={
+      id:'u_'+Date.now(),
+      nome: nome+' '+sobr,
+      email: e,
+      senha: hashSimple(p),
+      role: role_sel||'func',
+      cargo: document.getElementById('rg-cargo')?.value.trim()||'',
+      cpf: document.getElementById('rg-cpf')?.value.trim()||'',
+      tel: document.getElementById('rg-tel')?.value.trim()||'',
+      empresa: document.getElementById('rg-emp')?.value.trim()||document.getElementById('rg-cod')?.value.trim()||'',
+      createdAt: new Date().toISOString(),
+    };
+    saveUser(newUser);
+
+    document.getElementById('reg-form').style.display='none';
+    document.getElementById('reg-ok').classList.add('show');
+    toast('Conta criada com sucesso!','ok');
+  },1000);
+}
+function setM(id,txt,cls){const el=document.getElementById(id);if(!el)return;el.textContent=txt;el.className='f-msg '+cls}
+function clearM(id){const el=document.getElementById(id);if(!el)return;el.textContent='';el.className='f-msg'}
+
+/* ════ APP INIT ════ */
+function launchApp(r, user){
+  role=r;
+  currentUser=user||{nome:ROLES[r].name,email:'',role:r,id:'guest'};
+  const R=ROLES[r];
+  const displayName=currentUser.nome&&currentUser.nome.trim()!==''?currentUser.nome:R.name;
+  const initials=displayName.split(' ').filter(Boolean).slice(0,2).map(n=>n[0].toUpperCase()).join('');
+  document.getElementById('auth').classList.add('gone');
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('sb-av').textContent=initials||R.init;
+  document.getElementById('sb-name').textContent=displayName;
+  document.getElementById('sb-role').textContent=R.label;
+  document.getElementById('tb-av').textContent=initials||R.init;
+  buildNav(r);goPage('dashboard');
+}
+function doLogout(){
+  try{localStorage.removeItem('tc_session')}catch(ex){}
+  clearInterval(clockTick);
+  clockState='out'; currentUser=null;
+  document.getElementById('auth').classList.remove('gone');
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('content').innerHTML='';
+  authTab('login');
+  toast('Sessão encerrada.','ok');
+}
+try{
+  const sess=localStorage.getItem('tc_session');
+  if(sess){
+    const user=JSON.parse(sess);
+    window.addEventListener('DOMContentLoaded',()=>launchApp(user.role, user));
+  }
+}catch(ex){}
+
+/* ════ SIDEBAR ════ */
+function buildNav(r){
+  const secs=NAV[r]||[];let h='';
+  secs.forEach(sec=>{
+    if(sec.s)h+=`<div class="sb-sec">${sec.s}</div>`;
+    sec.items.forEach(it=>{
+      const badge=it.b?`<span class="sb-badge">${it.b}</span>`:'';
+      h+=`<button class="sb-item" id="ni-${it.id}" onclick="goPage('${it.id}')"><span class="sb-ic">${it.ic}</span><span class="sb-lbl">${it.l}</span>${badge}</button>`;
+    });
+  });
+  document.getElementById('sb-nav').innerHTML=h;
+}
+function toggleSB(){sbCollapsed=!sbCollapsed;document.getElementById('sidebar').classList.toggle('collapsed',sbCollapsed);document.getElementById('sb-tog').textContent=sbCollapsed?'▶':'◀'}
+function openMob(){document.getElementById('sidebar').classList.add('mob-open');document.getElementById('sb-bg').classList.add('show')}
+function closeMob(){document.getElementById('sidebar').classList.remove('mob-open');document.getElementById('sb-bg').classList.remove('show')}
+
+/* ════ ROUTER ════ */
+function goPage(id){
+  document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('ni-'+id)?.classList.add('active');
+  document.getElementById('tb-title').textContent=TITLES[id]||id;
+  document.getElementById('tb-sub').textContent=SUBS[id]||'';
+  closeMob();
+  const fns={dashboard:pgDash,monitor:pgMonitor,funcionarios:pgFuncionarios,registros:pgRegistros,relatorios:pgRelatorios,meuponto:pgMeuPonto,historico:pgHistorico,escalas:pgEscalas,horasextras:pgHorasExtras,faltas:pgFaltas,meusdados:pgMeusDados,backup:pgBackup,config:pgConfig};
+  const fn=fns[id]||(()=>`<div class="card"><div class="empty"><div class="empty-ic">🚧</div><div class="empty-t">Em desenvolvimento</div><div class="empty-s">Esta página estará disponível em breve.</div></div></div>`);
+  document.getElementById('content').innerHTML=`<div class="page active">${fn()}</div>`;
+  if(id==='monitor') { /* monitor pronto para dados reais */ }
+  if((id==='dashboard'||id==='meuponto')&&role==='func') startClock();
+}
+
+/* ════ CLOCK (func) ════ */
+function startClock(){clearInterval(clockTick);clockTick=setInterval(tickClock,1000);tickClock()}
+function tickClock(){if(clockState!=='in')return;const sec=Math.floor((Date.now()-clockStart)/1000);const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;document.querySelectorAll('.live-timer').forEach(el=>el.textContent=`${pad(h)}h ${pad(m)}m ${pad(s)}s`)}
+function pad(n){return n<10?'0'+n:n}
+
+/* ════ MONITOR AO VIVO ════ */
+// Simula registros em tempo real a cada poucos segundos — em produção
+// isso viria de WebSocket ou polling da API.
+// Sem dados simulados — apenas registros reais
+
+function nowStr(){return new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function initials(nm){return nm.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase()}
+
+function startMonitor(){ /* aguarda registros reais */ }
+
+
+
+
+function injectFeedEntry(entry){
+  const feed=document.getElementById('feed-list');
+  if(!feed) return;
+  // Remove empty state if present
+  const empty=feed.querySelector('.empty');
+  if(empty) empty.remove();
+  const clsMap={'Entrada':'bg','Saída':'br','Intervalo':'ba','Retorno':'bb'};
+  const icMap={'Entrada':'🟢','Saída':'🔴','Intervalo':'🟡','Retorno':'🔵'};
+  const init=entry.nome.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+  const row=document.createElement('div');
+  row.className='feed-row feed-new';
+  row.innerHTML=`
+    <div class="feed-time">${entry.hora}</div>
+    <div class="feed-av" style="background:var(--navy-pale);color:var(--navy);width:30px;height:30px;font-size:11px;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center">${init}</div>
+    <div class="feed-info">
+      <div class="feed-name">${entry.nome}</div>
+      <div class="feed-detail">${entry.local}</div>
+    </div>
+    <span class="badge ${clsMap[entry.tipo]||'bn'} feed-badge">${icMap[entry.tipo]||'•'} ${entry.tipo}</span>`;
+  feed.insertBefore(row,feed.firstChild);
+  while(feed.children.length>50) feed.removeChild(feed.lastChild);
+  updateFeedCounter();
+}
+
+function updateMonitorStats(){
+  const els={
+    'cnt-presentes': DB.stats.presentes,
+    'cnt-ausentes':  DB.stats.ausentes,
+    'cnt-intervalo': DB.stats.intervalo,
+    'cnt-registros': DB.registros.length,
+  };
+  Object.entries(els).forEach(([id,val])=>{
+    const el=document.getElementById(id);
+    if(el&&el.textContent!=String(val)){el.textContent=val;el.closest('.stat-card')?.classList.add('pulse-card');setTimeout(()=>el.closest('.stat-card')?.classList.remove('pulse-card'),600)}
+  });
+}
+
+function updateFeedCounter(){
+  const el=document.getElementById('feed-counter');
+  if(el) el.textContent=`${DB.registros.length} registro${DB.registros.length!==1?'s':''}`;
+}
+
+function toggleFeed(){
+  toast('Feed pronto — aguardando registros reais de funcionários','ok');
+}
+
+function clearFeed(){
+  DB.registros=[];DB.stats={presentes:0,ausentes:0,intervalo:0,extras:0};
+  const feed=document.getElementById('feed-list');if(feed)feed.innerHTML='';
+  updateMonitorStats();updateFeedCounter();
+  toast('Monitor zerado!','ok');
+}
+
+function filterFeed(tipo,btn){
+  document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#feed-list .feed-row').forEach(row=>{
+    const badge=row.querySelector('.feed-badge');
+    if(!badge){row.style.display='';return}
+    row.style.display=(tipo==='Todos'||badge.textContent.includes(tipo))?'':'none';
+  });
+}
+
+/* ════ PAGES ════ */
+function pgDash(){
+  if(role==='func') return pgDashFunc();
+  // Admin / RH / Gestor — dados zerados
+  return `
+  <div class="card" style="border:1.5px dashed var(--gray-200);background:var(--gray-50)">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="font-size:32px">📡</div>
+      <div>
+        <div style="font-family:var(--cond);font-size:16px;font-weight:700;color:var(--navy);margin-bottom:3px">Sistema pronto — aguardando registros</div>
+        <div style="font-size:13px;color:var(--gray-400)">Nenhum funcionário cadastrado ainda. Cadastre colaboradores e os registros aparecerão automaticamente.</div>
+      </div>
+      <button class="btn btn-primary" style="margin-left:auto;flex-shrink:0" onclick="goPage('funcionarios')">Cadastrar funcionário</button>
+    </div>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-number" id="cnt-presentes" style="color:var(--green)">0</div><div class="stat-label">Presentes</div><div class="stat-sub">Hoje</div></div>
+    <div class="stat-card"><div class="stat-number" id="cnt-ausentes"  style="color:var(--red)">0</div><div class="stat-label">Ausentes</div><div class="stat-sub">Hoje</div></div>
+    <div class="stat-card"><div class="stat-number" id="cnt-intervalo" style="color:var(--amber)">0</div><div class="stat-label">Em intervalo</div><div class="stat-sub">Agora</div></div>
+    <div class="stat-card"><div class="stat-number" id="cnt-registros">0</div><div class="stat-label">Registros</div><div class="stat-sub">No dia</div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ct">Ações rápidas</div></div>
+    <div style="display:flex;gap:.65rem;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="goPage('monitor')">📡 Abrir monitor ao vivo</button>
+      <button class="btn btn-secondary" onclick="goPage('funcionarios')">👥 Cadastrar funcionário</button>
+      <button class="btn btn-secondary" onclick="goPage('relatorios')">📈 Ver relatórios</button>
+      <button class="btn btn-secondary" onclick="goPage('config')">⚙️ Configurações</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ct">Como começar</div></div>
+    <div style="display:flex;flex-direction:column;gap:0">
+      ${howStep(1,'Cadastre os funcionários','Adicione os colaboradores em Funcionários → Novo funcionário','funcionarios')}
+      ${howStep(2,'Distribua os acessos','Cada funcionário receberá login e poderá registrar o ponto','config')}
+      ${howStep(3,'Monitore em tempo real','Acompanhe entradas e saídas no Monitor ao vivo','monitor')}
+      ${howStep(4,'Gere relatórios','Exporte dados de jornada quando precisar','relatorios')}
+    </div>
+  </div>`;
+}
+
+function howStep(n,t,s,pg){
+  return `<div style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--gray-100)">
+    <div style="width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:13px;font-weight:700;flex-shrink:0">${n}</div>
+    <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--gray-800);margin-bottom:2px">${t}</div><div style="font-size:12px;color:var(--gray-400)">${s}</div></div>
+    <button class="btn btn-secondary btn-xs" onclick="goPage('${pg}')">Ir →</button>
+  </div>`;
+}
+
+function pgDashFunc(){
+  const isIn=clockState==='in', isBreak=clockState==='break';
+  return `
+  <div class="clk">
+    <div class="clk-left">
+      <div class="clk-orb">${isIn?'⏱':isBreak?'☕':'🕐'}</div>
+      <div>
+        <div class="clk-status">${isIn?'Trabalhando':isBreak?'Em intervalo':'Sem registro ativo'}</div>
+        <div class="clk-sub">${isIn?'Clique em Saída para encerrar':isBreak?'Clique em Retornar para continuar':'Clique em Entrada para iniciar'}</div>
+        ${isIn?`<div class="clk-timer live-timer">--h --m --s</div>`:''}
+      </div>
+    </div>
+    <div class="clk-btns">
+      ${isIn?`<button class="cbtn cbtn-brk" onclick="doClk('break')">☕ Intervalo</button><button class="cbtn cbtn-out" onclick="doClk('out')">⏹ Saída</button>`
+        :isBreak?`<button class="cbtn cbtn-in" onclick="doClk('in')">▶ Retornar</button>`
+        :`<button class="cbtn cbtn-in" onclick="doClk('in')">▶ Registrar entrada</button>`}
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ct">Meus registros hoje</div><button class="cl" onclick="goPage('historico')">Ver histórico →</button></div>
+    ${DB.registros.filter(r=>r.nome===ROLES[role].name).length===0
+      ?`<div class="empty"><div class="empty-ic">📋</div><div class="empty-t">Nenhum registro hoje</div><div class="empty-s">Registre sua entrada para começar.</div></div>`
+      :DB.registros.slice(0,5).map(r=>`<div class="tl-row"><div class="tl-t">${r.hora}</div><div class="tl-dot ${r.tipo==='Entrada'?'di':r.tipo==='Saída'?'do':r.tipo==='Intervalo'?'db':'dp'}"></div><div class="tl-lbl">${r.tipo}</div><div class="tl-m">${r.local}</div></div>`).join('')}
+  </div>`;
+}
+
+function doClk(state){
+  clockState=state;
+  if(state==='in'){clockStart=Date.now();startClock()}
+  else clearInterval(clockTick);
+  const msgs={in:'Entrada registrada!',break:'Intervalo iniciado!',out:'Saída registrada!'};
+  toast(msgs[state],'ok');
+  // Registro real do funcionário logado
+  const tipo=state==='in'?'Entrada':state==='break'?'Intervalo':'Saída';
+  const entry={
+    id:'r_'+Date.now(),
+    userId:currentUser?.id||'',
+    nome:currentUser?.nome||ROLES[role].name,
+    tipo:tipo,
+    local:'Escritório SP',
+    hora:nowStr(),
+    data:new Date().toLocaleDateString('pt-BR'),
+    ts:Date.now()
+  };
+  DB.registros.unshift(entry);
+  saveRegistro(entry);  // persiste no localStorage
+  // Atualiza stats reais
+  if(tipo==='Entrada')  { DB.stats.presentes++; DB.stats.ausentes=Math.max(0,DB.stats.ausentes-1); }
+  if(tipo==='Saída')    { DB.stats.presentes=Math.max(0,DB.stats.presentes-1); }
+  if(tipo==='Intervalo'){ DB.stats.intervalo++; }
+  if(tipo==='Retorno')  { DB.stats.intervalo=Math.max(0,DB.stats.intervalo-1); }
+  // Injeta no feed do monitor se estiver aberto
+  injectFeedEntry(entry);
+  updateMonitorStats();
+  goPage('dashboard');
+}
+
+function pgMonitor(){
+  return `
+  <div class="monitor-header">
+    <div>
+      <div class="monitor-title">📡 Monitor de Registros ao Vivo</div>
+      <div class="monitor-sub">Atualizando automaticamente · Todos os registros de ponto em tempo real</div>
+    </div>
+    <div class="live-badge"><span class="live-dot"></span> AO VIVO</div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-number" id="cnt-presentes" style="color:var(--green)">0</div><div class="stat-label">Presentes</div><div class="stat-sub">Agora</div></div>
+    <div class="stat-card"><div class="stat-number" id="cnt-ausentes"  style="color:var(--red)">0</div><div class="stat-label">Ausentes</div><div class="stat-sub">Esperados</div></div>
+    <div class="stat-card"><div class="stat-number" id="cnt-intervalo" style="color:var(--amber)">0</div><div class="stat-label">Em intervalo</div><div class="stat-sub">Agora</div></div>
+    <div class="stat-card"><div class="stat-number" id="cnt-registros">0</div><div class="stat-label">Registros</div><div class="stat-sub">Hoje</div></div>
+  </div>
+
+  <div class="card">
+    <div class="ch">
+      <div class="ct">Feed de registros</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span class="reg-counter" id="feed-counter">0 registros</span>
+        <button class="btn btn-danger btn-sm" onclick="clearFeed()">🗑 Zerar registros</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <span style="font-size:12px;font-weight:600;color:var(--gray-400)">Filtrar:</span>
+      <button class="filter-chip active" onclick="filterFeed('Todos',this)">Todos</button>
+      <button class="filter-chip" onclick="filterFeed('Entrada',this)">🟢 Entradas</button>
+      <button class="filter-chip" onclick="filterFeed('Saída',this)">🔴 Saídas</button>
+      <button class="filter-chip" onclick="filterFeed('Intervalo',this)">🟡 Intervalos</button>
+      <button class="filter-chip" onclick="filterFeed('Retorno',this)">🔵 Retornos</button>
+    </div>
+    <div id="feed-list" style="max-height:480px;overflow-y:auto;border-radius:var(--r);border:1px solid var(--gray-100)">
+      <div class="empty" style="padding:2.5rem 1rem">
+        <div class="empty-ic">📡</div>
+        <div class="empty-t">Aguardando registros...</div>
+        <div class="empty-s">Quando um funcionário registrar entrada, saída ou intervalo, o evento aparecerá aqui instantaneamente.</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function pgRegistros(){
+  // Carrega do localStorage (persistido)
+  const regs=[...DB.registros,...getRegistros()].filter((r,i,a)=>a.findIndex(x=>x.id===r.id)===i).sort((a,b)=>b.ts-a.ts);
+  const hoje=new Date().toLocaleDateString('pt-BR');
+  const hojeRegs=regs.filter(r=>r.data===hoje);
+  return `
+  <div style="display:flex;gap:.65rem;margin-bottom:.9rem;flex-wrap:wrap;align-items:center">
+    <input class="search-inp" style="max-width:240px" placeholder="Buscar funcionário..." oninput="filterTbl(this.value,'reg-tbl')">
+    <select class="fi-sel" style="width:auto;padding:8px 11px" onchange="renderRegTable(this.value)">
+      <option value="hoje">Hoje — ${hoje}</option>
+      <option value="todos">Todos os registros</option>
+    </select>
+    <button class="btn btn-secondary btn-sm" onclick="exportCSV()">⬇ Exportar CSV</button>
+    <div style="margin-left:auto;font-size:12px;color:var(--gray-400)" id="reg-count">${hojeRegs.length} registros hoje</div>
+  </div>
+  <div class="card">
+    ${regs.length===0
+      ?`<div class="empty"><div class="empty-ic">🕐</div><div class="empty-t">Nenhum registro ainda</div><div class="empty-s">Os registros aparecerão aqui quando funcionários fizerem check-in.<br><br><button class="btn btn-primary btn-sm" onclick="goPage('monitor')">📡 Abrir monitor ao vivo</button></div></div>`
+      :`<div class="tw"><table id="reg-tbl">
+          <thead><tr><th>Data</th><th>Hora</th><th>Funcionário</th><th>Tipo</th><th>Local</th></tr></thead>
+          <tbody id="reg-tbody">${hojeRegs.map(r=>`<tr data-nome="${r.nome}" data-data="${r.data||''}"><td class="mono">${r.data||hoje}</td><td class="mono">${r.hora}</td><td>${r.nome}</td><td><span class="badge ${r.tipo==='Entrada'?'bg':r.tipo==='Saída'?'br':r.tipo==='Intervalo'?'ba':'bb'}">${r.tipo}</span></td><td>${r.local}</td></tr>`).join('')}</tbody>
+        </table></div>`}
+  </div>`;
+}
+
+function renderRegTable(filtro){
+  const regs=[...DB.registros,...getRegistros()].filter((r,i,a)=>a.findIndex(x=>x.id===r.id)===i).sort((a,b)=>b.ts-a.ts);
+  const hoje=new Date().toLocaleDateString('pt-BR');
+  const lista=filtro==='hoje'?regs.filter(r=>r.data===hoje):regs;
+  const tbody=document.getElementById('reg-tbody');
+  const cnt=document.getElementById('reg-count');
+  if(tbody) tbody.innerHTML=lista.map(r=>`<tr data-nome="${r.nome}" data-data="${r.data||''}"><td class="mono">${r.data||hoje}</td><td class="mono">${r.hora}</td><td>${r.nome}</td><td><span class="badge ${r.tipo==='Entrada'?'bg':r.tipo==='Saída'?'br':r.tipo==='Intervalo'?'ba':'bb'}">${r.tipo}</span></td><td>${r.local}</td></tr>`).join('');
+  if(cnt) cnt.textContent=lista.length+' registros';
+}
+
+function exportCSV(){
+  const regs=[...DB.registros,...getRegistros()].filter((r,i,a)=>a.findIndex(x=>x.id===r.id)===i).sort((a,b)=>b.ts-a.ts);
+  if(regs.length===0){toast('Nenhum dado para exportar','err');return;}
+  const csv=['Data,Hora,Funcionário,Tipo,Local',...regs.map(r=>`${r.data||''},${r.hora},"${r.nome}",${r.tipo},${r.local}`)].join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='timecontrol_registros.csv';a.click();
+  toast('CSV exportado!','ok');
+}
+
+function pgFuncionarios(){
+  return `
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.9rem;flex-wrap:wrap">
+    <input class="search-inp" style="max-width:240px" placeholder="Buscar funcionário...">
+    <div style="display:flex;gap:7px">
+      <button class="btn btn-secondary btn-sm" onclick="toast('Nenhum dado para exportar','ok')">⬇ Exportar</button>
+      <button class="btn btn-primary btn-sm" onclick="modalNewFunc()">＋ Novo funcionário</button>
+    </div>
+  </div>
+  <div class="stat-grid" id="func-stats">
+    <div class="stat-card"><div class="stat-number" id="fs-total">${getUsers().length}</div><div class="stat-label">Total</div></div>
+    <div class="stat-card"><div class="stat-number" id="fs-ativos">${getUsers().length}</div><div class="stat-label">Ativos</div></div>
+    <div class="stat-card"><div class="stat-number">0</div><div class="stat-label">Afastados</div></div>
+    <div class="stat-card"><div class="stat-number">${getUsers().filter(u=>{ try{return new Date(u.createdAt).getMonth()===new Date().getMonth()}catch(e){return false}}).length}</div><div class="stat-label">Novos/mês</div></div>
+  </div>
+  ${buildFuncTable()}
+  `;
+}
+
+function buildFuncTable(){
+  const users=getUsers();
+  if(users.length===0) return `<div class="card"><div class="empty"><div class="empty-ic">👥</div><div class="empty-t">Nenhum funcionário cadastrado</div><div class="empty-s">Adicione o primeiro colaborador para começar.</div><br><button class="btn btn-primary btn-sm" onclick="modalNewFunc()">＋ Cadastrar primeiro funcionário</button></div></div>`;
+  const roleLabel={admin:'Admin',rh:'RH',gestor:'Gestor',func:'Funcionário'};
+  const roleCls={admin:'r-admin',rh:'r-rh',gestor:'r-gestor',func:'r-func'};
+  const rows=users.map(u=>{
+    const init=u.nome.split(' ').filter(Boolean).slice(0,2).map(n=>n[0].toUpperCase()).join('');
+    return `<tr>
+      <td><div class="av-row"><div class="av" style="background:var(--navy-pale);color:var(--navy);width:28px;height:28px;font-size:11px">${init}</div>${u.nome}</div></td>
+      <td>${u.cargo||'—'}</td>
+      <td>${u.email}</td>
+      <td><span class="rtag ${roleCls[u.role]||'r-func'}">${roleLabel[u.role]||'Funcionário'}</span></td>
+      <td><span class="badge bg">Ativo</span></td>
+      <td><button class="btn btn-danger btn-xs" onclick="removeUser('${u.id}')">🗑 Remover</button></td>
+    </tr>`;
+  }).join('');
+  return `<div class="card"><div class="tw"><table><thead><tr><th>Nome</th><th>Cargo</th><th>E-mail</th><th>Perfil</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
+function removeUser(id){
+  if(!confirm('Remover este funcionário?')) return;
+  deleteUser(id);
+  toast('Funcionário removido.','ok');
+  goPage('funcionarios');
+}
+
+function pgRelatorios(){
+  return `
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-number">0<sub style="font-size:16px">h</sub></div><div class="stat-label">Total horas</div><div class="stat-sub">Este mês</div></div>
+    <div class="stat-card"><div class="stat-number">0<sub style="font-size:16px">h</sub></div><div class="stat-label">H. extras</div><div class="stat-sub">Este mês</div></div>
+    <div class="stat-card"><div class="stat-number">—</div><div class="stat-label">Pontualidade</div><div class="stat-sub">Sem dados</div></div>
+    <div class="stat-card"><div class="stat-number">—</div><div class="stat-label">Absenteísmo</div><div class="stat-sub">Sem dados</div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ct">Gerar relatório</div></div>
+    <div class="fi fi2" style="gap:.65rem;margin-bottom:.75rem">
+      <div><label class="fl">Período</label><select class="fi-sel"><option>${new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</option></select></div>
+      <div><label class="fl">Departamento</label><select class="fi-sel"><option>Todos</option></select></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary btn-sm" onclick="toast('Sem dados para exportar ainda','ok')">📄 PDF</button>
+      <button class="btn btn-secondary btn-sm" onclick="toast('Sem dados para exportar ainda','ok')">📊 Excel</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="empty"><div class="empty-ic">📈</div><div class="empty-t">Sem dados suficientes</div><div class="empty-s">Os relatórios serão gerados automaticamente conforme os registros de ponto forem acumulados.</div></div>
+  </div>`;
+}
+
+function pgMeuPonto(){
+  const isIn=clockState==='in', isBreak=clockState==='break';
+  return `
+  <div class="clk">
+    <div class="clk-left">
+      <div class="clk-orb">${isIn?'⏱':isBreak?'☕':'🕐'}</div>
+      <div>
+        <div class="clk-status">${isIn?'Trabalhando':isBreak?'Em intervalo':'Sem registro ativo'}</div>
+        <div class="clk-sub">${isIn?'Clique em Saída para encerrar':isBreak?'Clique em Retornar para continuar':'Registre sua entrada para começar'}</div>
+        ${isIn?`<div class="clk-timer live-timer">--h --m --s</div>`:''}
+      </div>
+    </div>
+    <div class="clk-btns">
+      ${isIn?`<button class="cbtn cbtn-brk" onclick="doClk('break')">☕ Intervalo</button><button class="cbtn cbtn-out" onclick="doClk('out')">⏹ Saída</button>`
+        :isBreak?`<button class="cbtn cbtn-in" onclick="doClk('in')">▶ Retornar</button>`
+        :`<button class="cbtn cbtn-in" onclick="doClk('in')">▶ Registrar entrada</button>`}
+    </div>
+  </div>
+  <div class="tc">
+    <div class="card">
+      <div class="ch"><div class="ct">Registros de hoje</div></div>
+      ${DB.registros.length===0
+        ?`<div class="empty"><div class="empty-ic">📋</div><div class="empty-t">Nenhum registro ainda</div><div class="empty-s">Registre sua entrada para começar.</div></div>`
+        :DB.registros.slice(0,6).map(r=>`<div class="tl-row"><div class="tl-t">${r.hora}</div><div class="tl-dot ${r.tipo==='Entrada'?'di':r.tipo==='Saída'?'do':r.tipo==='Intervalo'?'db':'dp'}"></div><div class="tl-lbl">${r.tipo}</div><div class="tl-m">${r.local}</div></div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">Solicitar ajuste de ponto</div></div>
+      <div class="fi" style="gap:.65rem">
+        <div><label class="fl">Data</label><input type="date" class="fi-in" value="${new Date().toISOString().slice(0,10)}"></div>
+        <div class="fi fi2" style="gap:.65rem">
+          <div><label class="fl">Tipo</label><select class="fi-sel"><option>Entrada</option><option>Saída</option><option>Intervalo</option></select></div>
+          <div><label class="fl">Horário</label><input type="time" class="fi-in"></div>
+        </div>
+        <div><label class="fl">Justificativa</label><textarea class="fi-ta" rows="3" placeholder="Descreva o motivo..."></textarea></div>
+        <button class="btn btn-primary btn-sm" onclick="toast('Solicitação enviada para aprovação!','ok')">Enviar solicitação</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function pgHistorico(){
+  return `
+  <div class="card">
+    <div class="empty"><div class="empty-ic">📋</div><div class="empty-t">Nenhum registro de ponto ainda</div><div class="empty-s">Seu histórico de entradas e saídas aparecerá aqui.<br><br><button class="btn btn-primary btn-sm" onclick="goPage('meuponto')">⏰ Registrar entrada agora</button></div></div>
+  </div>`;
+}
+
+function pgEscalas(){
+  const days=['DOM','SEG','TER','QUA','QUI','SEX','SÁB'];
+  const now=new Date();const mes=now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  const diasMes=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  const primeiroDia=new Date(now.getFullYear(),now.getMonth(),1).getDay();
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem;flex-wrap:wrap;gap:.75rem">
+    <div style="font-family:var(--cond);font-size:18px;font-weight:700;color:var(--navy);text-transform:capitalize">${mes}</div>
+    <button class="btn btn-primary btn-sm" onclick="toast('Configure as escalas em Configurações','ok')">⚙️ Configurar turnos</button>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ct">Calendário — ${mes}</div></div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center">
+      ${days.map(d=>`<div style="font-size:9px;font-weight:700;color:var(--gray-400);padding:5px">${d}</div>`).join('')}
+      ${Array(primeiroDia).fill('<div></div>').join('')}
+      ${Array.from({length:diasMes},(_,i)=>{
+        const d=i+1,isToday=d===now.getDate();
+        const isWk=((primeiroDia+i)%7===0||((primeiroDia+i)%7===6));
+        const bg=isToday?'var(--navy)':isWk?'var(--gray-100)':'var(--navy-pale)';
+        const cl=isToday?'#fff':isWk?'var(--gray-400)':'var(--navy)';
+        return `<div style="padding:8px 4px;border-radius:7px;font-size:12px;font-weight:${isToday?800:600};background:${bg};color:${cl};cursor:pointer" onclick="toast('Dia ${d} selecionado','ok')">${d}</div>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;gap:14px;margin-top:.9rem;flex-wrap:wrap">
+      ${[['var(--navy-pale)','Dia útil'],['var(--gray-100)','Fim de semana'],['var(--navy)','Hoje']].map(([bg,l])=>`<span style="font-size:12px;display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:${bg};display:inline-block"></span>${l}</span>`).join('')}
+    </div>
+  </div>`;
+}
+
+function pgHorasExtras(){
+  return `<div class="card"><div class="empty"><div class="empty-ic">⏱</div><div class="empty-t">Sem registros de horas extras</div><div class="empty-s">As horas extras serão calculadas automaticamente conforme os registros de ponto forem acumulados.</div></div></div>`;
+}
+function pgFaltas(){
+  return `<div class="card"><div class="empty"><div class="empty-ic">❌</div><div class="empty-t">Sem faltas ou atrasos registrados</div><div class="empty-s">As ocorrências aparecerão aqui automaticamente com base nos registros de ponto.</div></div></div>`;
+}
+function pgMeusDados(){
+  const R=ROLES[role];
+  return `
+  <div class="tc">
+    <div class="card">
+      <div class="ch"><div class="ct">Dados pessoais</div><button class="btn btn-secondary btn-xs" onclick="toast('Modo edição','ok')">✏️ Editar</button></div>
+      <div class="fi" style="gap:.65rem">
+        <div class="fi fi2" style="gap:.65rem">
+          <div><label class="fl">Nome</label><input class="fi-in" value="${R.name.split(' ')[0]}" disabled></div>
+          <div><label class="fl">Sobrenome</label><input class="fi-in" value="${R.name.split(' ').slice(1).join(' ')||'—'}" disabled></div>
+        </div>
+        <div><label class="fl">E-mail</label><input class="fi-in" value="${R.name.toLowerCase().replace(/ /g,'.')}@empresa.com.br" disabled></div>
+        <div><label class="fl">Perfil</label><input class="fi-in" value="${R.label}" disabled></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">Alterar senha</div></div>
+      <div class="fi" style="gap:.65rem">
+        <div><label class="fl">Senha atual</label><input type="password" class="fi-in" placeholder="••••••••"></div>
+        <div><label class="fl">Nova senha</label><input type="password" class="fi-in" placeholder="••••••••"></div>
+        <div><label class="fl">Confirmar</label><input type="password" class="fi-in" placeholder="••••••••"></div>
+        <button class="btn btn-primary btn-sm" onclick="toast('Senha alterada com sucesso!','ok')">Salvar nova senha</button>
+      </div>
+    </div>
+  </div>`;
+}
+function pgBackup(){
+  return `
+  <div class="card">
+    <div class="ch"><div class="ct">Backup automático</div><button class="btn btn-primary btn-sm" onclick="toast('Backup iniciado!','ok')">▶ Fazer backup agora</button></div>
+    <div class="empty"><div class="empty-ic">💾</div><div class="empty-t">Nenhum backup realizado ainda</div><div class="empty-s">O backup automático será ativado após o sistema entrar em operação.</div></div>
+  </div>`;
+}
+function pgConfig(){
+  const tog=(t,s,chk)=>`<div class="tog-row"><div><div class="tog-t2">${t}</div><div class="tog-s2">${s}</div></div><label class="tog"><input type="checkbox" ${chk?'checked':''}><div class="tog-track"></div><div class="tog-thumb"></div></label></div>`;
+  return `
+  <div class="tc">
+    <div class="card">
+      <div class="ch"><div class="ct">Configurações gerais</div></div>
+      <div class="fi" style="gap:.65rem">
+        <div><label class="fl">Nome da empresa</label><input class="fi-in" placeholder="Ex: Empresa ABC Ltda."></div>
+        <div class="fi fi2" style="gap:.65rem">
+          <div><label class="fl">Início padrão</label><input type="time" class="fi-in" value="08:00"></div>
+          <div><label class="fl">Fim padrão</label><input type="time" class="fi-in" value="17:00"></div>
+        </div>
+        <div><label class="fl">Tolerância de atraso (min)</label><input type="number" class="fi-in" value="10" style="max-width:120px"></div>
+        <button class="btn btn-primary btn-sm" onclick="toast('Configurações salvas!','ok')">Salvar</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">Notificações</div></div>
+      ${tog('Alertas de atraso','Notificar gestor quando funcionário atrasar',true)}
+      ${tog('Limite de horas extras','Alertar ao atingir 80% do limite',true)}
+      ${tog('Backup automático','Realizar backup diário às 02:00',true)}
+      ${tog('Relatório semanal','Enviar relatório por e-mail toda segunda',false)}
+      <button class="btn btn-primary btn-sm" style="margin-top:.75rem" onclick="toast('Preferências salvas!','ok')">Salvar preferências</button>
+    </div>
+  </div>`;
+}
+
+function filterTbl(val,id){document.querySelectorAll(`#${id} tbody tr`).forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(val.toLowerCase())?'':'none'})}
+
+/* ════ MODAL ════ */
+function openModal(title,body,foot=''){document.getElementById('m-title').textContent=title;document.getElementById('m-body').innerHTML=body;document.getElementById('m-foot').innerHTML=foot;document.getElementById('modal-bg').classList.add('open')}
+function closeModal(){document.getElementById('modal-bg').classList.remove('open')}
+document.getElementById('modal-bg').addEventListener('click',function(e){if(e.target===this)closeModal()});
+
+function modalNewFunc(){
+  openModal('Novo Funcionário',
+    `<div class="fi" style="gap:.65rem">
+      <div class="fi fi2" style="gap:.65rem">
+        <div><label class="fl">Nome</label><input class="fi-in" id="nf-nome" placeholder="Nome"></div>
+        <div><label class="fl">Sobrenome</label><input class="fi-in" placeholder="Sobrenome"></div>
+      </div>
+      <div><label class="fl">E-mail</label><input class="fi-in" type="email" placeholder="email@empresa.com"></div>
+      <div class="fi fi2" style="gap:.65rem">
+        <div><label class="fl">Cargo</label><input class="fi-in" placeholder="Ex: Dev Senior"></div>
+        <div><label class="fl">Departamento</label><select class="fi-sel"><option>Selecione</option><option>TI</option><option>Vendas</option><option>RH</option><option>Financeiro</option><option>Produto</option></select></div>
+      </div>
+      <div><label class="fl">Perfil de acesso</label><select class="fi-sel"><option>Funcionário</option><option>Gestor</option><option>RH</option><option>Administrador</option></select></div>
+    </div>`,
+    `<button class="btn btn-secondary btn-sm" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-primary btn-sm" onclick="closeModal();toast('Funcionário cadastrado! Agora pode fazer login.','ok')">Cadastrar</button>`
+  );
+}
+
+/* ════ TOAST ════ */
+let _tt;
+function toast(msg,type='ok'){
+  const el=document.getElementById('toast');
+  document.getElementById('t-msg').textContent=msg;
+  document.getElementById('t-ic').textContent=type==='ok'?'✓':'✕';
+  el.className=`toast t${type}`;
+  void el.offsetWidth;el.classList.add('show');
+  clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('show'),3000);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('sec-login')?.classList.contains('active'))doLogin()});
+</script>
+</body>
+</html>
